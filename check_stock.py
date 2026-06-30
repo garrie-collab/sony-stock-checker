@@ -29,30 +29,66 @@ PRODUCT_RE = re.compile(
 
 
 def fetch_page():
-    req = urllib.request.Request(URL, headers={"User-Agent": "Mozilla/5.0 (stock-checker-bot)"})
+    req = urllib.request.Request(
+        URL,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+    )
     with urllib.request.urlopen(req, timeout=30) as resp:
-        return resp.read().decode("utf-8", errors="ignore")
+        status = resp.status
+        body = resp.read().decode("utf-8", errors="ignore")
+        return status, body
+
+
+# Finds any anchor whose href points to a product detail page.
+PRODUCT_LINK_RE = re.compile(
+    r'href="(https://store\.sony\.co\.th/collections/console/products/[^"?#]+)"',
+    re.IGNORECASE,
+)
+
+# A reasonably permissive "visible text" grabber: strips tags from a chunk.
+TAG_RE = re.compile(r"<[^>]+>")
 
 
 def parse_products(html):
     """Return dict of {product_url: {"name": str, "in_stock": bool}}."""
-    products = {}
-    # Find all product detail links with their visible name
-    for match in PRODUCT_RE.finditer(html):
-        url, name = match.group(1), match.group(2).strip()
-        if url not in products and name and "View Detail" not in name:
-            products[url] = {"name": name, "in_stock": True}
+    # Step 1: collect unique product URLs in order of first appearance.
+    seen = []
+    for match in PRODUCT_LINK_RE.finditer(html):
+        url = match.group(1)
+        if url not in seen:
+            seen.append(url)
 
-    # For each product url, look at the slice of HTML between this product's
-    # link and the next one, and check whether the out-of-stock phrase
-    # appears in that slice.
-    urls = list(products.keys())
-    positions = [html.find(u) for u in urls]
-    for i, url in enumerate(urls):
+    if not seen:
+        return {}
+
+    positions = [html.find(u) for u in seen]
+
+    products = {}
+    for i, url in enumerate(seen):
         start = positions[i]
-        end = positions[i + 1] if i + 1 < len(urls) else len(html)
+        end = positions[i + 1] if i + 1 < len(seen) else len(html)
         chunk = html[start:end]
-        products[url]["in_stock"] = OUT_OF_STOCK_PHRASE not in chunk
+
+        # Pull a product name out of the chunk: look for an <h*>-ish
+        # heading first, else fall back to the slug from the URL.
+        heading_match = re.search(r"<h[1-4][^>]*>(.*?)</h[1-4]>", chunk, re.IGNORECASE | re.DOTALL)
+        if heading_match:
+            name = TAG_RE.sub("", heading_match.group(1)).strip()
+        else:
+            name = ""
+        if not name:
+            slug = url.rstrip("/").rsplit("/", 1)[-1]
+            name = slug.replace("-", " ").title()
+
+        in_stock = OUT_OF_STOCK_PHRASE not in chunk
+        products[url] = {"name": name, "in_stock": in_stock}
 
     return products
 
@@ -83,14 +119,19 @@ def send_notification(title, message, url=None):
 
 
 def main():
-    html = fetch_page()
+    status, html = fetch_page()
+    print(f"Fetched page: HTTP {status}, {len(html)} bytes")
+
     products = parse_products(html)
 
     if not products:
+        snippet = re.sub(r"\s+", " ", html)[:400]
         print("WARNING: no products parsed - page structure may have changed.", file=sys.stderr)
+        print(f"First 400 chars of response: {snippet}", file=sys.stderr)
         send_notification(
             "Stock checker warning",
-            "Couldn't parse any products from the Sony page. The site layout may have changed.",
+            f"Couldn't parse any products (HTTP {status}, {len(html)} bytes). "
+            "Site may be blocking automated requests or changed layout - check the Action logs.",
             URL,
         )
         sys.exit(1)
