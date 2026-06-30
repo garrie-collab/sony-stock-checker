@@ -46,9 +46,10 @@ def fetch_page():
         return status, body
 
 
-# Finds any anchor whose href points to a product detail page.
+# Finds any anchor whose href points to a product detail page (relative or
+# absolute form).
 PRODUCT_LINK_RE = re.compile(
-    r'href="(https://store\.sony\.co\.th/collections/console/products/[^"?#]+)"',
+    r'href="(?:https://store\.sony\.co\.th)?(/collections/console/products/[^"?#]+)"',
     re.IGNORECASE,
 )
 
@@ -59,19 +60,20 @@ TAG_RE = re.compile(r"<[^>]+>")
 def parse_products(html):
     """Return dict of {product_url: {"name": str, "in_stock": bool}}."""
     # Step 1: collect unique product URLs in order of first appearance.
-    seen = []
+    seen = []  # list of (absolute_url, path_as_it_appears_in_html)
     for match in PRODUCT_LINK_RE.finditer(html):
-        url = match.group(1)
-        if url not in seen:
-            seen.append(url)
+        path = match.group(1)
+        url = "https://store.sony.co.th" + path if path.startswith("/") else path
+        if url not in [u for u, _ in seen]:
+            seen.append((url, path))
 
     if not seen:
         return {}
 
-    positions = [html.find(u) for u in seen]
+    positions = [html.find(p) for _, p in seen]
 
     products = {}
-    for i, url in enumerate(seen):
+    for i, (url, _path) in enumerate(seen):
         start = positions[i]
         end = positions[i + 1] if i + 1 < len(seen) else len(html)
         chunk = html[start:end]
