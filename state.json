@@ -38,5 +38,9 @@
   "https://www.happyconsole.com/product/2619/": {
     "in_stock": false,
     "exists": true
+  },
+  "https://www.ais.th/consumers/store/accessories/sony/sony-playstation-5-pro-console": {
+    "in_stock": true,
+    "exists": true
   }
 }
