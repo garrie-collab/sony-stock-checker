@@ -1,4 +1,38 @@
 {
-  "https://store.sony.co.th/collections/console/products/ps5-console-e-disc-edition": false,
-  "https://store.sony.co.th/collections/console/products/asia-00480": false
+  "https://store.sony.co.th/collections/console/products/ps5-console-e-disc-edition": {
+    "in_stock": false,
+    "exists": true
+  },
+  "https://store.sony.co.th/collections/console/products/asia-00480": {
+    "in_stock": false,
+    "exists": true
+  },
+  "https://www.jib.co.th/web/product/readProduct/79404/1652/GAME-CONSOLE--%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99%E0%B9%80%E0%B8%81%E0%B8%A1--SONY-PLAYSTATION-5-PRO": {
+    "in_stock": false,
+    "exists": true
+  },
+  "https://www.homepro.co.th/p/1276435": {
+    "in_stock": false,
+    "exists": false
+  },
+  "https://www.advice.co.th/branch-a001/index.php/product/productdetail/A0176904": {
+    "in_stock": false,
+    "exists": true
+  },
+  "https://www.bnn.in.th/th/p/gaming-gear/console/playstation-0/sony-playstation-5-pro-console-new-version-4948872417068_zv4q1p": {
+    "in_stock": true,
+    "exists": true
+  },
+  "https://www.bnn.in.th/en/p/sony-playstation-5-pro-console-4948872416313_dlejqn": {
+    "in_stock": true,
+    "exists": true
+  },
+  "https://www.studio7thailand.com/th/p/sony-playstation-5-pro-console-new-version-4948872417068_zv4q1p": {
+    "in_stock": true,
+    "exists": true
+  },
+  "https://www.powerbuy.co.th/th/product/SONY-PlayStation-5-Pro-New-Version-PS5-Pro-Game-Console-2TB-CFI-7122-B01-314289": {
+    "in_stock": false,
+    "exists": false
+  }
 }
