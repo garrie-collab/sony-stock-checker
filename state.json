@@ -44,7 +44,7 @@
     "exists": true
   },
   "https://store.sony.co.th/collections/console/products/playstation%C2%AE5-console-digital-e-chassis-cfi-2118-b01": {
-    "in_stock": false,
+    "in_stock": true,
     "exists": true
   }
 }
