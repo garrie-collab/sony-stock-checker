@@ -36,15 +36,15 @@
     "exists": false
   },
   "https://www.happyconsole.com/product/2619/": {
-    "in_stock": false,
-    "exists": false
+    "in_stock": true,
+    "exists": true
   },
   "https://www.ais.th/consumers/store/accessories/sony/sony-playstation-5-pro-console": {
     "in_stock": true,
     "exists": true
   },
   "https://store.sony.co.th/collections/console/products/playstation%C2%AE5-console-digital-e-chassis-cfi-2118-b01": {
-    "in_stock": false,
+    "in_stock": true,
     "exists": true
   }
 }
