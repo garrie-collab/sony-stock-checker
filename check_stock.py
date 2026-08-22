@@ -64,7 +64,7 @@ SITES = [
         "name": "HomePro",
         "url": "https://www.homepro.co.th/p/1276435",
         "type": "product",
-        "use_playwright": False,
+        "use_playwright": True,
         "out_of_stock_phrases": ["สินค้าหมด", "สต๊อคคงเหลือ 0", "หมดสต็อก", "out of stock"],
         "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404 not found"],
     },
@@ -107,22 +107,13 @@ SITES = [
         "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock", "notify me", "แจ้งเตือนฉัน"],
         "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
     },
-    {
-        "name": "PowerBuy",
-        "url": (
-            "https://www.powerbuy.co.th/th/product/"
-            "SONY-PlayStation-5-Pro-New-Version-PS5-Pro-Game-Console-2TB-CFI-7122-B01-314289"
-        ),
-        "type": "product",
-        "use_playwright": True,
-        "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock"],
-        "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
-    },
+    # PowerBuy removed - blocked by Cloudflare even with headless browser
     {
         "name": "HappyConsole",
         "url": "https://www.happyconsole.com/product/2619/",
         "type": "product",
         "use_playwright": True,
+        "long_wait": True,
         "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock"],
         "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
     },
@@ -131,6 +122,7 @@ SITES = [
         "url": "https://www.ais.th/consumers/store/accessories/sony/sony-playstation-5-pro-console",
         "type": "product",
         "use_playwright": True,
+        "long_wait": True,
         "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock", "สินค้าหมดชั่วคราว"],
         "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
     },
@@ -148,7 +140,7 @@ def fetch_simple(url):
         return e.code, e.read().decode("utf-8", errors="ignore"), url
 
 
-def fetch_playwright(url):
+def fetch_playwright(url, wait_ms=4000):
     """Returns (status, html, final_url) using headless Chromium."""
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
@@ -160,11 +152,15 @@ def fetch_playwright(url):
         )
         page = context.new_page()
         try:
-            resp = page.goto(url, wait_until="networkidle", timeout=45000)
+            resp = page.goto(url, wait_until="networkidle", timeout=60000)
             status = resp.status if resp else 0
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(wait_ms)
             html = page.content()
             final_url = page.url
+            # Print a visible-text snippet to help debug phrase matching
+            snippet = re.sub(r"<[^>]+>", " ", html)
+            snippet = re.sub(r"\s+", " ", snippet).strip()[:500]
+            print(f"    Page snippet: {snippet}")
         except Exception as e:
             print(f"  Playwright error for {url}: {e}", file=sys.stderr)
             html = ""
@@ -236,7 +232,8 @@ def check_site(site):
     """
     url = site["url"]
     name = site["name"]
-    fetch_fn = fetch_playwright if site["use_playwright"] else fetch_simple
+    fetch_fn = (lambda u: fetch_playwright(u, wait_ms=8000)) if site.get("long_wait") else \
+               (fetch_playwright if site["use_playwright"] else fetch_simple)
 
     print(f"  Checking {name}...")
     try:
