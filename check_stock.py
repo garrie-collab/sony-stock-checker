@@ -107,7 +107,19 @@ SITES = [
         "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock", "notify me", "แจ้งเตือนฉัน"],
         "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
     },
-    # PowerBuy removed - blocked by Cloudflare even with headless browser
+    # PowerBuy - intermittently blocked by Cloudflare; silent_fail suppresses warning notifications on block
+    {
+        "name": "PowerBuy",
+        "url": (
+            "https://www.powerbuy.co.th/th/product/"
+            "SONY-PlayStation-5-Pro-New-Version-PS5-Pro-Game-Console-2TB-CFI-7122-B01-314289"
+        ),
+        "type": "product",
+        "use_playwright": True,
+        "silent_fail": True,
+        "out_of_stock_phrases": ["สินค้าหมด", "หมดสต็อก", "out of stock"],
+        "page_gone_phrases": ["ไม่พบสินค้า", "page not found", "404"],
+    },
     {
         "name": "HappyConsole",
         "url": "https://www.happyconsole.com/product/2619/",
@@ -241,7 +253,6 @@ def check_site(site):
     except Exception as e:
         print(f"  NETWORK ERROR for {name}: {e}", file=sys.stderr)
         return None   # Skip this site this run; don't update state
-
     print(f"    HTTP {status}, {len(html)} bytes, final URL: {final_url[:80]}")
 
     if site["type"] == "collection":
@@ -269,12 +280,13 @@ def check_site(site):
 
     if len(html) < 2000:
         # Very short response often means a bot block / redirect we missed
-        print(f"  WARNING: suspiciously short response for {name} ({len(html)} bytes)", file=sys.stderr)
-        send_notification(
-            f"⚠️ Stock checker warning",
-            f"{name} returned only {len(html)} bytes - may be blocked. Check Action logs.",
-            url,
-        )
+        print(f"  {'SKIPPING' if site.get('silent_fail') else 'WARNING'}: suspiciously short response for {name} ({len(html)} bytes)", file=sys.stderr)
+        if not site.get("silent_fail"):
+            send_notification(
+                f"⚠️ Stock checker warning",
+                f"{name} returned only {len(html)} bytes - may be blocked. Check Action logs.",
+                url,
+            )
         return None
 
     print(f"    {'IN STOCK' if in_stock else 'out of stock'} (matched phrases: {found_phrases or 'none'})")
