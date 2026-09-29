@@ -32,8 +32,8 @@
     "exists": true
   },
   "https://www.powerbuy.co.th/th/product/SONY-PlayStation-5-Pro-New-Version-PS5-Pro-Game-Console-2TB-CFI-7122-B01-314289": {
-    "in_stock": false,
-    "exists": false
+    "in_stock": true,
+    "exists": true
   },
   "https://www.happyconsole.com/product/2619/": {
     "in_stock": true,
