@@ -12,8 +12,8 @@
     "exists": true
   },
   "https://www.homepro.co.th/p/1276435": {
-    "in_stock": false,
-    "exists": false
+    "in_stock": true,
+    "exists": true
   },
   "https://www.advice.co.th/branch-a001/index.php/product/productdetail/A0176904": {
     "in_stock": false,
